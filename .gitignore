@@ -1,0 +1,13 @@
+.DS_Store
+.idea/
+font_tmp*
+*.png
+*.jpg
+*.tif
+*.jpeg
+output
+*.pyc
+lstm
+recog/
+ScrollView.jar
+*.swp
