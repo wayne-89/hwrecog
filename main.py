@@ -155,9 +155,9 @@ if method == 0:
     tprint(cmd)
     os.system(cmd)
 if method == 0:
-    tprint('step4.1 通过box生成剩余lstmf ' + str(firstParNum + 1) + '-' + str(totalParNum + 1))
+    tprint('step4.1 通过box生成剩余lstmf ' + str(firstParNum + 1) + '-' + str(totalParNum))
 else:
-    tprint('step4.1 通过box生成lstmf ' + str(1) + '-' + str(totalParNum + 1))
+    tprint('step4.1 通过box生成lstmf ' + str(1) + '-' + str(totalParNum))
 for i in range(firstParNum + 1, totalParNum + 1):
     size = os.popen('identify -format "%G" ./output/{0}/eng.{0}.exp{1}.tif'.format(name, i)).read()
     print('size ', size)
