@@ -11,4 +11,4 @@ lstm
 recog/
 ScrollView.jar
 *.swp
-emnist/data/
+emnist/data/*
