@@ -16,7 +16,7 @@ trainTargetErrorEate = 5
 
 
 def gotArg(argsMap, key, oldValue):
-    if key in argsMap:
+    if str(key) in argsMap:
         return argsMap[key]
     return oldValue
 
@@ -31,11 +31,12 @@ if len(sys.argv) > 1:
             argsMap[lastArg] = arg
             lastArg = None
     method = gotArg(argsMap, "--method", method)
-    filename = gotArg(filename, "--filename", filename)
+    filename = gotArg(argsMap, "--filename", filename)
     langdata_dir = gotArg(argsMap, "--langdata_dir", langdata_dir)
     tessdata_dir = gotArg(argsMap, "--tessdata_dir", tessdata_dir)
     trainIterationTime = gotArg(argsMap, "--train_iteration_times", trainIterationTime)
     trainTargetErrorEate = gotArg(argsMap, "--train_target_error_rate", trainTargetErrorEate)
+    print method, filename
 name, ext = os.path.splitext(filename)
 if method == 2:
     name = "emnist"
