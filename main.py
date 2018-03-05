@@ -9,7 +9,7 @@ import sys
 filename = "zxlbox.jpeg"
 langdata_dir = "/Users/wayne/Work/langdata"
 tessdata_dir = "/Users/wayne/Work/tesseract/tessdata"
-method = 2  # 0是字体 1是box 2是emnist
+method = 2  # 0是字体+box 1是box 2是emnist
 imgBlockLineSize = 1  # 图片几行分割为一块 当method=1时有效
 trainIterationTime = None
 trainTargetErrorEate = 5
@@ -30,12 +30,12 @@ if len(sys.argv) > 1:
         elif lastArg is not None:
             argsMap[lastArg] = arg
             lastArg = None
-    method = gotArg(argsMap, "--method", method)
+    method = int(gotArg(argsMap, "--method", method))
     filename = gotArg(argsMap, "--filename", filename)
     langdata_dir = gotArg(argsMap, "--langdata_dir", langdata_dir)
     tessdata_dir = gotArg(argsMap, "--tessdata_dir", tessdata_dir)
-    trainIterationTime = gotArg(argsMap, "--train_iteration_times", trainIterationTime)
-    trainTargetErrorEate = gotArg(argsMap, "--train_target_error_rate", trainTargetErrorEate)
+    trainIterationTime = int(gotArg(argsMap, "--train_iteration_times", trainIterationTime))
+    trainTargetErrorEate = float(gotArg(argsMap, "--train_target_error_rate", trainTargetErrorEate))
     print method, filename
 name, ext = os.path.splitext(filename)
 if method == 2:
@@ -104,7 +104,7 @@ if method == 2:
     print path
     emnist = EMNIST(path, name)
     firstParNum, totalParNum = emnist.load()
-    print firstParNum, totalParNum
+    print 'totalParNum', totalParNum, 'firstParNum', firstParNum
     tprint('预处理耗时s:  ' + str(time.time() - stTicks))
 else:
     ######## step1 图片转为300dp的tif
@@ -119,9 +119,10 @@ else:
     ####### step2 opencv依照模板识别每个字符
     tprint('step2 opencv依照模板识别每个字符')
     totalParNum, firstParNum = intercpt.doIntercept(name, path, method, imgBlockLineSize)
+    print 'totalParNum', totalParNum, 'firstParNum', firstParNum
     tprint(filename + ' opencv split char success')
     ################################
-
+    print 'method', method == 0
     ####### step3 转换为字体文件
     if method == 0:
         tprint('step3 转换为字体文件')
@@ -130,6 +131,8 @@ else:
         else:
             tprint(filename + ' generate font failed')
             exit(0)
+    elif method == 1:
+        firstParNum = 0
     ################################
 ####### step4 开始训练
 tprint('step4 开始训练')
@@ -139,7 +142,6 @@ os.system('mkdir -p {0}/lstm/traindata'.format(path))
 os.system('mkdir -p {0}/lstm/traindata/tune'.format(path))
 os.system('mkdir -p ./lstm/result')
 os.system('mkdir -p {0}/lstm/src'.format(path))
-
 # 生成lstmf
 # --tessdata_dir {2} \
 cmd = None
@@ -152,7 +154,10 @@ if method == 0:
       --fontlist "tesseracthand" --output_dir {0}/lstm/traindata'.format(path, langdata_dir, tessdata_dir)
     tprint(cmd)
     os.system(cmd)
-tprint('step4.2 通过box生成lstmf ' + str(firstParNum))
+if method == 0:
+    tprint('step4.1 通过box生成剩余lstmf ' + str(firstParNum + 1) + '-' + str(totalParNum + 1))
+else:
+    tprint('step4.1 通过box生成lstmf ' + str(1) + '-' + str(totalParNum + 1))
 for i in range(firstParNum + 1, totalParNum + 1):
     size = os.popen('identify -format "%G" ./output/{0}/eng.{0}.exp{1}.tif'.format(name, i)).read()
     print('size ', size)

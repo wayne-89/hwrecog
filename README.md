@@ -27,7 +27,9 @@
 注：train_iteration_times和train_target_error_rate只会有一个生效， 优先使用train_iteration_times
 ```
 1. 通过生成字体训练
+刚方式，会将单个字符生成字体去训练， 单词形式通过box去训练
 训练需要使用模板，模板映射到的内容见template.txt
+注意： 字体训练的训练物料要求必须是单个字符
 ```
 --method 0
 --filename test.png  #指定项目路径下的待训练图片
@@ -40,6 +42,7 @@
 ```
 
 3. 通过使用emnist的文件训练
+将emnist中的数据提取出图片，生成box去训练
 ```
 --method 2
 ```
@@ -47,8 +50,14 @@
 使用举例：
 ```
 python main.py --langdata_dir /Users/wayne/Work/langdata --tessdata_dir /Users/wayne/Work/tesseract/tessdata \
---train_iteration_times 1200 --method 0 --filename test.png
+--train_iteration_times 1200 --method 0 --filename zxl.jpeg
 ```
+
+训练过程产生的数据在 output/图片name/中
+
+最后训练出的结果在 lstm/result/中
+
+
 
 
 
