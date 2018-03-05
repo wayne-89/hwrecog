@@ -2,7 +2,7 @@
 # coding=utf-8
 # file test.py
 
-from mnistlocal import MNIST
+from mnist import MNIST
 import cv2 as cv
 import numpy as np
 
