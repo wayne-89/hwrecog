@@ -7,15 +7,12 @@ from emnist import EMNIST
 import sys
 
 filename = "zxlbox.jpeg"
-name, ext = os.path.splitext(filename)
 langdata_dir = "/Users/wayne/Work/langdata"
 tessdata_dir = "/Users/wayne/Work/tesseract/tessdata"
 method = 2  # 0是字体 1是box 2是emnist
 imgBlockLineSize = 1  # 图片几行分割为一块 当method=1时有效
 trainIterationTime = None
 trainTargetErrorEate = 5
-if method == 2:
-    name = "emnist"
 
 
 def gotArg(argsMap, key, oldValue):
@@ -39,6 +36,9 @@ if len(sys.argv) > 1:
     tessdata_dir = gotArg(argsMap, "--tessdata_dir", tessdata_dir)
     trainIterationTime = gotArg(argsMap, "--train_iteration_times", trainIterationTime)
     trainTargetErrorEate = gotArg(argsMap, "--train_target_error_rate", trainTargetErrorEate)
+name, ext = os.path.splitext(filename)
+if method == 2:
+    name = "emnist"
 
 
 # if method == 0:
