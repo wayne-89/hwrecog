@@ -3,14 +3,42 @@ import interceptor as intercpt
 import fontout as fontout
 import os
 import time
+from emnist import EMNIST
+import sys
 
-filename = "zxlbox3.jpeg"
+filename = "zxlbox.jpeg"
 name, ext = os.path.splitext(filename)
 langdata_dir = "/Users/wayne/Work/langdata"
 tessdata_dir = "/Users/wayne/Work/tesseract/tessdata"
-method = 0  # 0是字体 1是box
+method = 2  # 0是字体 1是box 2是emnist
 imgBlockLineSize = 1  # 图片几行分割为一块 当method=1时有效
-trainIterationTime = 1200
+trainIterationTime = None
+trainTargetErrorEate = 5
+if method == 2:
+    name = "emnist"
+
+
+def gotArg(argsMap, key, oldValue):
+    if (argsMap.has_key(key)):
+        return argsMap[key]
+    return oldValue
+
+
+if len(sys.argv) > 1:
+    argsMap = {}
+    lastArg = None
+    for arg in sys.argv:
+        if arg.startswith("--"):
+            lastArg = arg
+        elif lastArg is not None:
+            argsMap[lastArg] = arg
+            lastArg = None
+    method = gotArg(argsMap, "--method", method)
+    filename = gotArg(filename, "--filename", filename)
+    langdata_dir = gotArg(argsMap, "--langdata_dir", langdata_dir)
+    tessdata_dir = gotArg(argsMap, "--tessdata_dir", tessdata_dir)
+    trainIterationTime = gotArg(argsMap, "--train_iteration_times", trainIterationTime)
+    trainTargetErrorEate = gotArg(argsMap, "--train_target_error_rate", trainTargetErrorEate)
 
 
 # if method == 0:
@@ -70,30 +98,38 @@ isExists = os.path.exists(path)
 if not isExists:
     os.makedirs(path)
 
-######## step1 图片转为300dp的tif
-tprint('step1 图片转为300dp的tif')
-if convert2tif(filename, path):
-    tprint(filename + ' convert to tif success')
+if method == 2:
+    tprint('step1 预处理: 通过enmist生成box')
+    print path
+    emnist = EMNIST(path, name)
+    firstParNum, totalParNum = emnist.load()
+    print firstParNum, totalParNum
+    tprint('预处理耗时s:  ' + str(time.time() - stTicks))
 else:
-    tprint(filename + ' convert to tif failed')
-    exit()
-################################
-
-####### step2 opencv依照模板识别每个字符
-tprint('step2 opencv依照模板识别每个字符')
-totalParNum, firstParNum = intercpt.doIntercept(name, path, method, imgBlockLineSize)
-tprint(filename + ' opencv split char success')
-################################
-
-####### step3 转换为字体文件
-if method == 0:
-    tprint('step3 转换为字体文件')
-    if fontout.generate(path + '/chars', name, 'map_file.txt', path):
-        tprint(filename + ' generate font success')
+    ######## step1 图片转为300dp的tif
+    tprint('step1 图片转为300dp的tif')
+    if convert2tif(filename, path):
+        tprint(filename + ' convert to tif success')
     else:
-        tprint(filename + ' generate font failed')
-        exit(0)
-################################
+        tprint(filename + ' convert to tif failed')
+        exit()
+    ################################
+
+    ####### step2 opencv依照模板识别每个字符
+    tprint('step2 opencv依照模板识别每个字符')
+    totalParNum, firstParNum = intercpt.doIntercept(name, path, method, imgBlockLineSize)
+    tprint(filename + ' opencv split char success')
+    ################################
+
+    ####### step3 转换为字体文件
+    if method == 0:
+        tprint('step3 转换为字体文件')
+        if fontout.generate(path + '/chars', name, 'map_file.txt', path):
+            tprint(filename + ' generate font success')
+        else:
+            tprint(filename + ' generate font failed')
+            exit(0)
+    ################################
 ####### step4 开始训练
 tprint('step4 开始训练')
 # 创建文件夹
@@ -115,15 +151,17 @@ if method == 0:
       --fontlist "tesseracthand" --output_dir {0}/lstm/traindata'.format(path, langdata_dir, tessdata_dir)
     tprint(cmd)
     os.system(cmd)
-
 tprint('step4.2 通过box生成lstmf ' + str(firstParNum))
 for i in range(firstParNum + 1, totalParNum + 1):
     size = os.popen('identify -format "%G" ./output/{0}/eng.{0}.exp{1}.tif'.format(name, i)).read()
     print('size ', size)
     convert300dP('./output/{0}/eng.{0}.exp{1}.tif'.format(name, i))
-    convert('./output/{0}'.format(name), 'eng.{0}.exp{1}.tif'.format(name, i), 'eng.{0}.exp{1}'.format(name, i),
-            size,
-            './output/{0}/lstm/traindata/eng.{0}.exp{1}.tif'.format(name, i))
+    if method != 2:
+        convert('./output/{0}'.format(name), 'eng.{0}.exp{1}.tif'.format(name, i), 'eng.{0}.exp{1}'.format(name, i),
+                size,
+                './output/{0}/lstm/traindata/eng.{0}.exp{1}.tif'.format(name, i))
+    else:
+        os.system('cp -rf ./output/{0}/eng.{0}.exp{1}.tif ./output/{0}/lstm/traindata'.format(name, i))
     os.system('cp -rf ./output/{0}/eng.{0}.exp{1}.box ./output/{0}/lstm/traindata'.format(name, i))
     # os.system('cp -rf ./output/{0}/eng.{0}.exp{1}.tif ./output/{0}/lstm/traindata'.format(name, i))
 
@@ -146,15 +184,25 @@ os.system('cp ./lstm/eng.traineddata \
   {0}/lstm/src/eng.traineddata'.format(path))
 # 进行微调训练
 tprint('step4.3 基于基础训练集进行微调训练')
-#   --max_iterations 800
-# --target_error_rate
-cmd = 'lstmtraining --model_output {0}/lstm/traindata/tune/tune \
-  --debug_interval 0 \
-  --continue_from {0}/lstm/src/eng.lstm \
-  --traineddata {0}/lstm/src/eng.traineddata \
-  --train_listfile {0}/lstm/traindata/eng.training_files.txt \
-  --max_iterations {1} \
-'.format(path, trainIterationTime)
+#   --max_iterations {1}
+# --target_error_rate {2}
+
+if trainIterationTime is not None:
+    cmd = 'lstmtraining --model_output {0}/lstm/traindata/tune/tune \
+      --debug_interval 0 \
+      --max_iterations {1} \
+      --continue_from {0}/lstm/src/eng.lstm \
+      --traineddata {0}/lstm/src/eng.traineddata \
+      --train_listfile {0}/lstm/traindata/eng.training_files.txt \
+    '.format(path, trainIterationTime, trainTargetErrorEate)
+else:
+    cmd = 'lstmtraining --model_output {0}/lstm/traindata/tune/tune \
+      --debug_interval 0 \
+      --target_error_rate {2} \
+      --continue_from {0}/lstm/src/eng.lstm \
+      --traineddata {0}/lstm/src/eng.traineddata \
+      --train_listfile {0}/lstm/traindata/eng.training_files.txt \
+    '.format(path, trainIterationTime, trainTargetErrorEate)
 tprint(cmd)
 os.system(cmd)
 # 合并训练结果

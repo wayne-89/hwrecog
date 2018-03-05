@@ -1,0 +1,28 @@
+26 16
+1 15 16,16 26 8
+a	b	c	d	e	f	g	h	i	j	k	l	m	n	o	p
+q	r	s	t	u	v	w	x	y	z
+A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P
+Q	R	S	T	U	V	W	X	Y	Z
+0	1	2	3	4	5	6	7	8	9	0	1	2	3	4	+
+.	,	:	;	"	'	#	%	?	!	(	)	$	@	&	-
+a	b	c	d	e	f	g	h	i	j	k	l	m	n	o	p
+q	r	s	t	u	v	w	x	y	z
+A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P
+Q	R	S	T	U	V	W	X	Y	Z
+a	b	c	d	e	f	g	h	i	j	k	l	m	n	o	p
+q	r	s	t	u	v	w	x	y	z
+A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P
+Q	R	S	T	U	V	W	X	Y	Z
+.	,	:	;	"	'	#	%	?	!	(	)	$	@	&	-
+the	an	is	this	that	they	we	she
+it	with	you	can	need	he	what	when
+ing	ese	ian	ent	er	ar	ate	ee
+ess	ist	vi	ex	pre	pro	re	circ
+com	uni	ful	able	dis	tele	micro	in
+im	trans	sur	super	en	fy	or	ant
+cide	dom	epi	leg	min	mis	mit	nov
+part	plex	ply	pot	sent	semi	serv	sol
+spec	stit	tend	tract	vac	vers	vis	vent
+ab	re	anti	auto	bi	co	en	eu
+fore	inter	post	pre	tele	multi	tion	nal

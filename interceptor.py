@@ -16,6 +16,7 @@ Keys:
 from __future__ import print_function
 
 import numpy as np
+import re
 import cv2 as cv
 import sys
 import os
@@ -29,9 +30,10 @@ def readTemplate():
     list_of_all_the_lines = file.read().splitlines()
     allChars = []
     for line in list_of_all_the_lines[2:]:
-        chars = line.split(" ")
+        chars = re.split(r'[\s]', line)
+        # chars = line.split(" ")
         allChars.append(chars)
-        # print(line)
+        # print(chars)
     # print(allChars)
     tConfig = list_of_all_the_lines[0].split(" ")
     rowNum = int(tConfig[0])
@@ -68,7 +70,7 @@ def getFilePath(filename, imagename):
 #        ---- x2,y2
 #       |    |
 #  x1,y1 ----
-#
+# 原点在左下角
 def writeBoxFile(boxInfo, filename, imgs, blockLineSize):
     '''将模板数据很检测到的位置信息写入文件box'''
     print('imgsize     ', len(imgs), boxInfo[0][0].val)
@@ -168,7 +170,7 @@ def doIntercept(filename, basePath, method, imgBlockLineSize):
     bw = cv.bitwise_not(outerBox)
     # 膨胀 ############
     # 构造一个5×5的结构元素
-    print(int(img.shape[1] * 0.015))
+    # print(int(img.shape[1] * 0.015))
     scale = int(img.shape[1] * 0.015)
     element = cv.getStructuringElement(cv.MORPH_RECT, (scale, scale))
     cv.imwrite(getFilePath(filename, 'bw.png'), bw)
@@ -201,6 +203,7 @@ def doIntercept(filename, basePath, method, imgBlockLineSize):
     boundRect = cv.boundingRect(contours[maxAreaI])
     cha = max(2, boundRect[2] / 100 + scale)
     print('cha ' + str(cha))
+    # cha = 28
     bound = [boundRect[0] + cha, boundRect[1] + cha, boundRect[2] - cha * 2, boundRect[3] - cha * 2]
     # cv.imshow('image2', img_dc)
     # cv.imwrite(getFilePath(filename, 'img_dc.png'), img_dc)
@@ -235,6 +238,8 @@ def doIntercept(filename, basePath, method, imgBlockLineSize):
                       x:x + colWidth]
                 # bw_fine_result[y:y + rowHeight, x:x + colWidth] = outerBox[y:y + rowHeight,
                 #                                                  x:x + colWidth]
+                # img_inner = cv.rectangle(img_inner, (x - bound[0], y - bound[1]),
+                #                          (x - bound[0] + colWidth, y - bound[1] + rowHeight), (255, 0, 0), 1)
                 imInner, contoursInner, hierarchyInner = cv.findContours(roi, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
                 # img_dc_inner = cv.drawContours(roi_rgb, contoursInner, 0, (0, 255, 0), 1)
                 if i < len(template[j - rowst]) and len(contoursInner) > 0:
@@ -262,6 +267,7 @@ def doIntercept(filename, basePath, method, imgBlockLineSize):
     cv.imwrite(getFilePath(filename, 'result.png'), img_inner)
     cv.imwrite(getFilePath(filename, 'result_for_box.tif'), bw_fine_inner_result)
     # ################################
+    # exit(0)
     parNum = 1
     if method == 0:
         # 输出chars字体所需图片和map文件
