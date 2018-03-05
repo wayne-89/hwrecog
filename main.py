@@ -19,7 +19,7 @@ if method == 2:
 
 
 def gotArg(argsMap, key, oldValue):
-    if (argsMap.has_key(key)):
+    if key in argsMap:
         return argsMap[key]
     return oldValue
 
